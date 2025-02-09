@@ -1,2 +1,72 @@
+configs:
+  init.sql:
+    content: |
+      create database $PGDATABASE;
+      create user $PGUSER with encrypted password '$PGPASSWORD' SUPERUSER;
+      grant all privileges on database $PGDATABASE to $PGUSER;
+      \connect $PGDATABASE postgres
+      grant all on schema public to $PGUSER;
+
+      CREATE EXTENSION IF NOT EXISTS vectorscale CASCADE;
+      CREATE EXTENSION IF NOT EXISTS ai CASCADE;
+  pgpass:
+    content: timescaledb:5432:*:${PGUSER}:${PGPASSWORD}
+  servers.json:
+    content: |
+      {
+        "Servers": {
+          "1": {
+            "Group": "Servers",
+            "Name": "Docker Compose",
+            "Host": "timescaledb",
+            "Port": 5432,
+            "MaintenanceDB": "postgres",
+            "Username": "${PGUSER}",
+            "PassFile": "/.pgpass",
+            "SSLMode": "prefer"
+          }
+        }
+      }
+
 services:
 
+  pgadmin:
+    configs:
+      - source: servers.json
+        target: /pgadmin4/servers.json
+      - source: pgpass
+        target: /var/lib/pgadmin/storage/${PGADMINDIR}/.pgpass
+    depends_on:
+      - timescaledb
+    entrypoint: |
+      /bin/sh -c "chown pgadmin:root /var/lib/pgadmin/storage/${PGADMINDIR}/.pgpass; chmod 600 /var/lib/pgadmin/storage/${PGADMINDIR}/.pgpass; /entrypoint.sh;"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMINEMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMINPASSWORD}
+    image: dpage/pgadmin4
+    ports:
+      - 8081:80
+    restart: always
+    user: root
+    volumes:
+      - .volumes/pgadmin:/var/lib/pgadmin
+
+  timescaledb:
+    command: [ "-c", "ai.ollama_host=http://host.docker.internal:11434" ]
+    configs:
+      - source: init.sql
+        target: /docker-entrypoint-initdb.d/init.sql
+    environment:
+      POSTGRES_PASSWORD: ${PGPASSWORD}
+    image: timescale/timescaledb-ha:pg17
+    ports:
+      - 5432:5432
+    volumes:
+      - .volumes/timescaledb:/var/lib/postgresql/data
+
+  vectorizer-worker:
+    command: [ "--poll-interval", "5s", "--log-level", "ERROR" ]
+    environment:
+      OLLAMA_HOST: http://host.docker.internal:11434
+      PGAI_VECTORIZER_WORKER_DB_URL: postgres://${PGUSER}:${PGPASSWORD}@timescaledb:${PGPORT}/${PGDATABASE}
+    image: timescale/pgai-vectorizer-worker:latest

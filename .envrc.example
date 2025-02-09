@@ -1,2 +1,11 @@
 VIRTUAL_ENV=.venv
 layout python
+
+export PGADMINEMAIL="<pgadmin-email>"
+export PGADMINPASSWORD="<agamin-secret>"
+export PGADMINDIR=${PGADMINEMAIL/@/_}
+export PGDATABASE="<project-database>"
+export PGHOST="localhost"
+export PGPASSWORD="<project-database-password>"
+export PGPORT="5432"
+export PGUSER="<project-database-user>"
