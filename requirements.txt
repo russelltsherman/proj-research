@@ -1,2 +1,4 @@
 alembic
+colorama
+devtools
 sqlalchemy
