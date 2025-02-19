@@ -39,6 +39,7 @@ services:
     environment:
       - NEO4J_AUTH=neo4j/${PGADMINPASSWORD}
       - NEO4J_dbms_security_auth__minimum__password__length=6
+      - NEO4J_PLUGINS=["apoc", "apoc-extended", "graph-data-science"]
     volumes:
       - .volumes/neo4j:/data
 

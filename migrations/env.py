@@ -1,6 +1,6 @@
 from alembic import context
-from db import engine, get_url
-from db.models import Base
+from db.pg import engine, get_url
+from db.pg.models import Base
 from logging.config import fileConfig
 
 # this is the Alembic Config object, which provides
