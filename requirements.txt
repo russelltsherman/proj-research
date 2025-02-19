@@ -8,6 +8,7 @@ langsmith
 langchain-anthropic
 langchain-community
 langchain-core
+langchain_groq
 langchain-neo4j
 langchain-openai
 langchain-ollama

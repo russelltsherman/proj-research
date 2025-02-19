@@ -1,14 +1,18 @@
 from colorama import Fore
-from devtools import debug
 from langchain_core.prompts import ChatPromptTemplate
-from llm.models import OllamaChat
-
+from llm.models import (
+    Anthropic,
+    Deepseek,
+    Gemini,
+    Ollama,
+    OpenAI
+)
 
 prompt = ChatPromptTemplate([
     ("system", "You are a helpful assistant"),
     ("user", "{prompt}")
 ])
-model = OllamaChat()
+model = Ollama()
 chain = prompt | model
 
 
